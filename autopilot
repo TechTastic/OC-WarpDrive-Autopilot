@@ -37,7 +37,7 @@ function isAuto()      --IS Auto already on?
   end
 end
 
-if isAuto() then        --Checks for Autopilot
+if ~isAuto() then        --Checks for Autopilot
   term.write("Press ENTER to interrupt normal WD booting..."
   local i = 30
   while (i ~= 0) do
