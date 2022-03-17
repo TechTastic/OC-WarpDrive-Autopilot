@@ -9,19 +9,33 @@ local kb = component.keyboard
 
 -- CUSTOM FUNCTIONS
 
-function calcDist(t, d)   --Calculates the distance from destination to target; gives both negative and positive output
-  return t - d
+function calcDist(t, c)   --Calculates the distance from current to target; gives both negative and positive output
+  return t - c
 end
 
 function maxJumpNum(d)    --Calculates the number of maximum jumps that can be made to reach a destination
-  max = wcon.getMaxJumpDistance()
-  r = d % max
-  if r ~= 0 then
-    return Math.floor((d-r) / max)
-  else
-    return Math.floor(d / max)
-  end
+	max = wcon.getMaxJumpDistance()
+	r = d % max
+	if r ~= 0 then
+		if isNeg(r) then
+			return Math.floor((d+r) / max)
+		else
+			return Math.floor((d-r) / max)
+		end
+	else
+		return Math.floor(d / max)
+	end
 end
+
+function isNeg(n)
+	if n != Math.abs(n) then
+		return true
+	else
+		return false
+	end
+end
+
+-- ACTUAL PROGRAM START
 
 function isAuto()      --IS Auto already on?
   if fs.exists("auto") then
@@ -91,6 +105,9 @@ else                    --Autopilot engaged
 	fs.write(file,serial.serialization(vNav))
 	fs.close()
   end
-  	hi							--NEEDS TO BE REMADE; getDist() THEN GIVE IT TO maxJumpNum(); TEST FOR NEGATIVE maxJumpNum() RETURNS
+  	local curX, curY, curZ = wcon.position()
+	local curPos = {curX, curY, curZ}
+	local dist = {calcDist(vNav[1], curPos[1]), calcDist(vNav[2], curPos[2]), calcDist(vNav[3], curPos[3])}
+	
   end
 end
