@@ -1,6 +1,7 @@
 local component = require("component")
 local event = require("event")
-local term = require("terminal")
+local term = require("term")
+local serial = require("serialization")
 
 local wcon = component.warpdriveShipController
 local fs = component.filesystem
@@ -22,8 +23,9 @@ end
 
 function isAuto()      --IS Auto already on?
   if fs.exists("auto") then
-    local file = fs.open("auto", "r")
+    local file = io.open("auto", "r")
     str = fs.read(file, 5)
+    fs.close()
     local bool = false
     if str == "true" then
       bool = true
@@ -39,23 +41,34 @@ if isAuto() then        --Checks for Autopilot
   term.write("Press ENTER to interrupt normal WD booting..."
   local i = 30
   while (i ~= 0) do
-	  if keyboard.isKeyDown("enter") then
-		  break;
-	  end
-	  i = i - 1
-	  os.sleep(1)
+  	if keyboard.isKeyDown("enter") then
+		break;
+	end
+	i = i - 1
+	os.sleep(1)
   end
   if i == 0 then
     os.execute(normal_wd)
   else
-    local file = fs.open("auto", "w")
+    local file = io.open("auto", "w")
     fs.write(file, "true")
+    fs.close()
     os.execute(reboot)
   end
 else                    --Autopilot engaged
-  if fs.exists("nav") then
-  
+  if fs.exists("nav") then			--does nav file exist?
+  	vNav = serial.unserialize(fs.read(io.open("nav", "r"), 32000))
   else
+  	local temp = {"new"}			--new nav file
+	local temp = serial.serialize(temp)
+	local file = io.open("nav", "w")
+	fs.write(file, temp)
+	fs.close()
+  end
+  if vNav[1] == "new" then			--is nav configured?
+  	--configure nav
+  end
+  --ACTUAL autopilot route
 end
 
 
