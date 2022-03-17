@@ -7,6 +7,8 @@ local wcon = component.warpdriveShipController
 local fs = component.filesystem
 local kb = component.keyboard
 
+-- CUSTOM FUNCTIONS
+
 function calcDist(t, d)   --Calculates the distance from destination to target; gives both negative and positive output
   return t - d
 end
@@ -66,12 +68,29 @@ else                    --Autopilot engaged
 	fs.close()
   end
   if vNav[1] == "new" then			--is nav configured?
-  	--configure nav
+  	term.write("Where do you want to go?\nX: ")
+	local x = tonumber(term.read())
+	if x < -30000 or x > 30000 then
+		term.write("Enter a number thats WITHIN the world border!\nX: ")
+		local x = tonumber(term.read())
+	end
+	term.write("Y: ")
+	local y = tonumber(term.read())
+	if y < 0 or y > 256 then
+		term.write("Space still has a height limit...")
+		local y = tonumber(term.read())
+	end
+	term.write("Z: ")
+	local z = tonumber(term.read())
+	if z < -30000 or z > 30000 then
+		term.write("Enter a number thats WITHIN the world border!\nZ: ")
+		local z = tonumber(term.read())
+	end
+	vNav = {x, y, z}
+	local file = io.open("nav", "w")
+	fs.write(file,serial.serialization(vNav))
+	fs.close()
   end
-  --ACTUAL autopilot route
+  	hi							--NEEDS TO BE REMADE; getDist() THEN GIVE IT TO maxJumpNum(); TEST FOR NEGATIVE maxJumpNum() RETURNS
+  end
 end
-
-
-
-
-
