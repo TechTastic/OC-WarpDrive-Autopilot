@@ -1,3 +1,5 @@
+--MAKE THIS YOUR startup FILE
+
 local component = require("component")
 local event = require("event")
 local term = require("term")
@@ -9,122 +11,217 @@ local kb = component.keyboard
 
 -- CUSTOM FUNCTIONS
 
-function calcDist(t, c)   --Calculates the distance from current to target; gives both negative and positive output
-  return t - c
-end
-
-function maxJumpNum(d)    --Calculates the number of maximum jumps that can be made to reach a destination
-	max = wcon.getMaxJumpDistance()
-	r = d % max
-	if r ~= 0 then
-		if isNeg(r) then
-			return Math.floor((d+r) / max)
-		else
-			return Math.floor((d-r) / max)
+function getPlanet(name)				--GET PLANET LOCATION FROM NAME
+	local pl = io.open("planet_list", "r")
+	local planets = serial.unserialize(fs.read(pl, 32000))
+	for k,v in pairs(planets) do
+		if planets[k] == name then
+			return planets[name]
 		end
-	else
-		return Math.floor(d / max)
 	end
 end
 
-function isNeg(n)
-	if n != Math.abs(n) then
-		return true
-	else
-		return false
+function isAuto()					--IS AUTOPILOT ALREADY ON?
+	local auto = io.open("auto", "r")
+	local bool = false
+	if fs.read(auto, 5) == "true" then
+		bool = true
 	end
+	fs.close(auto)
+	return bool
 end
 
-function isAuto()      --IS Auto already on?
-  if fs.exists("auto") then
-    local file = io.open("auto", "r")
-    str = fs.read(file, 5)
-    fs.close()
-    local bool = false
-    if str == "true" then
-      bool = true
-    end
-    return bool
-  else
-    os.execute('echo "false" > auto')
-    os.execute(reboot)
-  end
+--CHECKING FILES
+
+if ~fs.exists("auto") then
+	local auto = io.open("auto", "w")
+	fs.write(auto, "false")
+	fs.close(auto)
+end
+if ~fs.exists("navConf") then
+	local nav = io.open("navConf", "w")
+	fs.write(nav, "new")
+	fs.close(nav)
+end
+if ~fs.exists("planet_list") then
+	local pl = io.open("planet_list", "w")
+	planets = {}
+	planets['telos'] = {2500, 256, 22500}
+	planets['kashyyk'] = {12500, 256, 12500}
+	planets['tatooine'] = {12500, 256, -17500}
+	planets['dagobah'] = {-2500, 256, -12500}
+	planets['hoth'] = {-12500, 256, -12500}
+	planets['yarvin-4'] = {-22500, 256, 7500}
+	planets['ilum'] = {-17500, 256, 7500}
+	planets['deep-space'] = {7500, 256, -2500}
+	planets['endor'] = {-22500, 256, -17500}
+	planets['tython'] = {-7500, 256, 12500}
+	planets['korriban'] = {22500, 256, -22500}
+	planets['jakku'] = {-27500, 256, 7500}
+	planets['hurrikane'] = {27500, 256, 27500}
+	planets = serial.serialize(planets)
+	fs.write(pl, planets)
+	fs.close(pl)
 end
 
 --ACTUAL PROGRAM START
 
-if ~isAuto() then        --Checks for Autopilot
-  term.write("Press ENTER to interrupt normal WD booting..."
-  local i = 30
-  while (i ~= 0) do
-  	if keyboard.isKeyDown("enter") then
-		break;
+if ~isAuto() then
+	term.write("Starting Warpdrive normally\n")
+	term.write("Press ENTER to engage autopilot...\n")
+
+	local i = 30
+	while (i ~= 0) do
+		if keyboard.isKeyDown("enter") then
+			break
+		end
+		i = i - 1
+		os.sleep(1)
 	end
-	i = i - 1
-	os.sleep(1)
-  end
-  if i == 0 then
-    os.execute(normal_wd)
-  else
-    local file = io.open("auto", "w")
-    fs.write(file, "true")
-    fs.close()
-    os.execute(reboot)
-  end
-else                    --Autopilot engaged
-  if fs.exists("nav") then			--does nav file exist?
-  	vNav = serial.unserialize(fs.read(io.open("nav", "r"), 32000))
-  else
-  	local temp = {"new"}			--new nav file
-	local temp = serial.serialize(temp)
-	local file = io.open("nav", "w")
-	fs.write(file, temp)
-	fs.close()
-  end
-  if vNav[1] == "new" then			--is nav configured?
-  	term.write("Where do you want to go?\nX: ")
-	local x = tonumber(term.read())
-	if x < -30000 or x > 30000 then
-		term.write("Enter a number thats WITHIN the world border!\nX: ")
-		local x = tonumber(term.read())
+	if i == 0 then
+		os.execute(normal_wd)
+	else
+		local auto = io.open("auto", "w")
+		fs.write("auto", "true")
+		fs.close(auto)
+		os.execute(startup)
 	end
-	term.write("Y: ")
-	local y = tonumber(term.read())
-	if y < 0 or y > 256 then
-		term.write("Space still has a height limit...")
-		local y = tonumber(term.read())
+else
+	local nav = io.open("navConf", "r")
+	if fs.read(nav, 3) == "new" then
+		fs.close(nav)
+		local pl = io.open("planet_list", "r")
+		local planets = serial.unserialize(pl, 32000)
+		fs.close(pl)
+		term.write("List of PLanets:\n")
+		for k, v in pairs(planets) do
+			term.write(planets[k]\n)
+		end
+		term.write("Enter a planet name or say 'coords' [coords]\n")
+		local tName = term.read()
+		tPlanet = getPlanet(tName)
+		if tPlanet ~= nil then
+			target = tPlanet
+		else
+			term.write("Where are we going?\nX: ")
+			tX = term.read()
+			while tX > 30000 or tX < -30000 do
+				term.write("The World Border is 60Kx60K, 30K radius")
+				tX = term.read()
+			end
+			term.write("Y: ")
+			tY = term.read()
+			while tY > 30000 or tY < -30000 do
+				term.write("The World Border is 60Kx60K, 30K radius")
+				tY = term.read()
+			end
+			term.write("Z: ")
+			tZ = term.read()
+			while tZ > 30000 or tZ < -30000 do
+				term.write("The World Border is 60Kx60K, 30K radius")
+				tX = term.read()
+			end
+			target = {tX, tY, tZ}
+		end
+		local size, _ = wcon.getShipSize()
+		if size >= 4500 then
+			term.write("Should we utilize hyperspace? [Y/n]")
+			local hyper = term.read()
+			if hyper == "n" or hyper == "N" then
+				target[4] = false
+			else
+				target[4] = true
+			end
+		else
+			target[4] = false
+		end
+		if ~wcon.isInSpace() then
+			if ~wcon.isInHyperspace() then
+				target[5] = "planet"
+			else
+				target[5] = "hyper"
+			end
+		else
+			target[5] = "space"
+		end
+		local nav = io.open("navConf", "w")
+		fs.write(serial.serialize(target))
+		fs.close(nav)
 	end
-	term.write("Z: ")
-	local z = tonumber(term.read())
-	if z < -30000 or z > 30000 then
-		term.write("Enter a number thats WITHIN the world border!\nZ: ")
-		local z = tonumber(term.read())
-	end
-	vNav = {x, y, z}
-	local file = io.open("nav", "w")
-	fs.write(file,serial.serialization(vNav))
-	fs.close()
-  end
-  	local curX, curY, curZ = wcon.position()
-	local curPos = {curX, curY, curZ}
-	local dist = {vNav[1] - curPos[1], vNav[2] - curPos[2], vNav[3] - curPos[3]}
-	for k,v in pairs(dist) do
-		if v < wcon.getMaxJumpDistance then
-			
+	local nav = io.open("navConf", "r")
+	target = serial.unserialize(fs.read(nav, 32000))
+	fs.close(nav)
+	if target[5] == "planet" then
+		if wcon.getShipSize() > 3000 then
+			term.write("This ship is too big to exit the planet. It needs to have 4500 blocks or lower.")
+			while wcon.getShipSize() > 3000 do
+				term.write("Current Size: " .. wcon.getShipSize())
+				os.sleep(1)
+			end
+		elseif wcon.isInSpace() then
+			target[5] = "space"
+			local nav = io.open("navConf", "w")
+			fs.write(serial.serialize(target))
+			fs.close(nav)
+		else
+			wcon.movement(0, wcon.getMaxJumpDistance(), 0)
+			wcon.command("MANUAL")
+			wcon.enable(true)
+		end
+	elseif target[5] == "space" and target ~= wcon.position() then
+		if target[4] then
+			wcon.movement(0, 0, 0)
+			wcon.command("HYPERDRIVE")
+			wcon.enable(true)
 		end
 	end
-  end
+	local x, y, z = wcon.position()
+	dist = {target[1] - x, target[2] - y, target[3] - z}
+	
+	if dist[1] ~= Math.abs(dist[1]) then
+		local xJump = -1 * wcon.getMaxJumpDistance()
+	else
+		local xJump = 1 * wcon.getMaxJumpDistance()
+	end
+	if dist[2] ~= Math.abs(dist[2]) then
+		local yJump = -1 * wcon.getMaxJumpDistance()
+	else
+		local yJump = 1 * wcon.getMaxJumpDistance()
+	end
+	if dist[3] ~= Math.abs(dist[3]) then
+		local zJump = -1 * wcon.getMaxJumpDistance()
+	else
+		local zJump = 1 * wcon.getMaxJumpDistance()
+	end
+	
+	if Math.abs(dist[1]) < wcon.getMaxJumpDistance() then
+		xJump = dist[1]
+	end
+	if Math.abs(dist[2]) < wcon.getMaxJumpDistance() then
+		yJump = dist[2]
+	end
+	if Math.abs(dist[3]) < wcon.getMaxJumpDistance() then
+		zJump = dist[3]
+	end
+	if x == target[1] then
+		if z == target[3] then
+			if wcon.isInHyperspace() then
+				wcon.movement(0, 0, 0)
+				wcon.command("HYPERDRIVE")
+				wcon.enable(true)
+			else
+				term.write("You've arrived! Resetting configuration changes")
+				local auto = io.open("auto", "w")
+				fs.write("false")
+				fs.close(nav)
+				local nav = io.open("navConf", "w")
+				fs.write("new")
+				fs.close(nav)
+				os.execute(reboot)
+			end
+		end
+	end
+	wcon.movement(xJump, yJump, zJump)
+	wcon.command("MANUAL")
+	wcon.enable(true)
 end
-
-
-PSUEDO CODE
-
-libraries
-
-functions
-
-does "auto" file exist
-does "nav" file exist
-
-is auto already?
-	if not interrupt for auto or go to wd normal
