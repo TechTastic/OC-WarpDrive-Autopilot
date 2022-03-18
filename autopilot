@@ -35,8 +35,6 @@ function isNeg(n)
 	end
 end
 
--- ACTUAL PROGRAM START
-
 function isAuto()      --IS Auto already on?
   if fs.exists("auto") then
     local file = io.open("auto", "r")
@@ -52,6 +50,8 @@ function isAuto()      --IS Auto already on?
     os.execute(reboot)
   end
 end
+
+--ACTUAL PROGRAM START
 
 if ~isAuto() then        --Checks for Autopilot
   term.write("Press ENTER to interrupt normal WD booting..."
@@ -107,7 +107,24 @@ else                    --Autopilot engaged
   end
   	local curX, curY, curZ = wcon.position()
 	local curPos = {curX, curY, curZ}
-	local dist = {calcDist(vNav[1], curPos[1]), calcDist(vNav[2], curPos[2]), calcDist(vNav[3], curPos[3])}
-	
+	local dist = {vNav[1] - curPos[1], vNav[2] - curPos[2], vNav[3] - curPos[3]}
+	for k,v in pairs(dist) do
+		if v < wcon.getMaxJumpDistance then
+			
+		end
+	end
   end
 end
+
+
+PSUEDO CODE
+
+libraries
+
+functions
+
+does "auto" file exist
+does "nav" file exist
+
+is auto already?
+	if not interrupt for auto or go to wd normal
