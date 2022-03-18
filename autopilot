@@ -4,10 +4,10 @@ local component = require("component")
 local event = require("event")
 local term = require("term")
 local serial = require("serialization")
+local kb = require("keyboard")
 
 local wcon = component.warpdriveShipController
 local fs = component.filesystem
-local kb = component.keyboard
 
 -- CUSTOM FUNCTIONS
 
@@ -30,6 +30,14 @@ function isAuto()					--IS AUTOPILOT ALREADY ON?
 	fs.close(auto)
 	return bool
 end
+
+function keyPress(time)
+	if kb.isKeyDown(0x1C) then
+		event.cancel(time)
+		i = i - 1
+	end
+end
+		
 
 --CHECKING FILES
 
@@ -69,15 +77,9 @@ end
 if not isAuto() then
 	term.write("Starting Warpdrive normally\n")
 	term.write("Press ENTER to engage autopilot...\n")
-
-	local i = 30
-	while (i ~= 0) do
-		if kb.isKeyDown(0x1C) then
-			break
-		end
-		i = i - 1
-		os.sleep(1)
-	end
+	
+	i = 30
+	local time = event.timer(1, keyPress(time) , 30)
 	if i == 0 then
 		os.execute('/normal_wd')
 	else
