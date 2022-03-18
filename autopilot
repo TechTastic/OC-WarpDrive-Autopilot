@@ -13,7 +13,7 @@ local fs = component.filesystem
 
 function getPlanet(name)				--GET PLANET LOCATION FROM NAME
 	local pl = io.open("/planet_list", "r")
-	local planets = serial.unserialize(fs.read(pl, 32000))
+	local planets = serial.unserialize(pl:read("*all"))
 	for k,v in pairs(planets) do
 		if planets[k] == name then
 			return planets[name]
@@ -24,32 +24,32 @@ end
 function isAuto()					--IS AUTOPILOT ALREADY ON?
 	local auto = io.open("/auto", "r")
 	local bool = false
-	if fs.read(auto, 5) == "true" then
+	if auto:read(5) == "true" then
 		bool = true
 	end
-	fs.close(auto)
+	auto:close()
 	return bool
 end
 
+local pressed
 function filter(key)					--filter for pullFiltered()
 	if key == "key_down" then
+		pressed = false
 		if kb.isKeyDown(0x1C) then
 			pressed = true
-			return true
-		else
-			pressed = false
-			return false
 		end
 	end
+	return pressed
 end
 
 function solution()					--Attempt as solving problem child
 	local nav = io.open("/navConf", "r")
-	if fs.read(nav, 3) == "new" then
-		fs.close(nav)
+	local navConf = nav:read(3)
+	nav.close()
+	if navConf == "new" then
 		local pl = io.open("/planet_list", "r")
-		local planets = serial.unserialize(pl, 32000)
-		fs.close(pl)
+		local planets = serial.unserialize(pl:read("*all"))
+		pl:close()
 		term.write("List of Planets:\n")
 		for k, v in pairs(planets) do
 			term.write(planets[k] .. "\n")
@@ -102,25 +102,32 @@ function solution()					--Attempt as solving problem child
 			target[5] = "space"
 		end
 		local nav = io.open("/navConf", "w")
-		fs.write(serial.serialize(target))
-		fs.close(nav)
+		nav:write(serial.serialize(target))
+		nav:close()
 	end
 	local nav = io.open("/navConf", "r")
-	target = serial.unserialize(fs.read(nav, 32000))
-	fs.close(nav)
+	local conf = nav:read("*all")
+	nav:close()
+	if conf == nil then				--FIXES THE CORRUPT FILE I HAD
+		os.execute("rm /navConf")
+		os.execute(reboot)
+	end
+	local target = serial.unserialize(conf)
 	if target[5] == "planet" then
-		if wcon.getShipSize() > 3000 then
+		local mass, _ = wcon.getShipSize()
+		if mass > 3000 then
 			term.write("This ship is too big to exit the planet. It needs to have 4500 blocks or lower.")
-			while wcon.getShipSize() > 3000 do
-				term.write("Current Size: " .. wcon.getShipSize())
+			while mass > 3000 do
+				mass, _ = wcon.getShipSize()
+				term.write("Current Size: " .. mass)
 				os.sleep(1)
 				os.execute(reboot)
 			end
 		elseif wcon.isInSpace() then
 			target[5] = "space"
 			local nav = io.open("/navConf", "w")
-			fs.write(serial.serialize(target))
-			fs.close(nav)
+			nav:write(serial.serialize(target))
+			nav:close()
 		else
 			wcon.movement(0, wcon.getMaxJumpDistance(), 0)
 			wcon.command("MANUAL")
@@ -170,11 +177,11 @@ function solution()					--Attempt as solving problem child
 			else
 				term.write("You've arrived! Resetting configuration changes")
 				local auto = io.open("/auto", "w")
-				fs.write("false")
-				fs.close(nav)
+				auto:write("false")
+				auto:close()
 				local nav = io.open("/navConf", "w")
-				fs.write("new")
-				fs.close(nav)
+				nav:write("new")
+				nav:close()
 				os.execute(reboot)
 			end
 		end
@@ -188,13 +195,13 @@ end
 
 if not fs.exists("/auto") then
 	local auto = io.open("/auto", "w")
-	fs.write(auto, "false")
-	fs.close(auto)
+	auto:write("false")
+	auto:close()
 end
 if not fs.exists("/navConf") then
 	local nav = io.open("/navConf", "w")
-	fs.write(nav, "new")
-	fs.close(nav)
+	nav:write("new")
+	nav:close()
 end
 if not fs.exists("/planet_list") then
 	local pl = io.open("/planet_list", "w")
@@ -213,8 +220,8 @@ if not fs.exists("/planet_list") then
 	planets['jakku'] = {-27500, 256, 7500}
 	planets['hurrikane'] = {27500, 256, 27500}
 	planets = serial.serialize(planets)
-	fs.write(pl, planets)
-	fs.close(pl)
+	pl:write(planets)
+	pl:close()
 end
 
 --ACTUAL PROGRAM START
@@ -228,8 +235,8 @@ if not isAuto() then
 		os.execute('/normal_wd')
 	elseif pressed then
 		local auto = io.open("/auto", "w")
-		fs.write("auto", "true")
-		fs.close(auto)
+		auto:write("true")
+		auto:close()
 		solution()
 	end
 else
