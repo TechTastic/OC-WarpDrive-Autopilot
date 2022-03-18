@@ -42,57 +42,8 @@ function filter(key)					--filter for pullFiltered()
 		end
 	end
 end
-		
 
---CHECKING FILES
-
-if not fs.exists("/auto") then
-	local auto = io.open("/auto", "w")
-	fs.write(auto, "false")
-	fs.close(auto)
-end
-if not fs.exists("/navConf") then
-	local nav = io.open("/navConf", "w")
-	fs.write(nav, "new")
-	fs.close(nav)
-end
-if not fs.exists("/planet_list") then
-	local pl = io.open("/planet_list", "w")
-	planets = {}
-	planets['telos'] = {2500, 256, 22500}
-	planets['kashyyk'] = {12500, 256, 12500}
-	planets['tatooine'] = {12500, 256, -17500}
-	planets['dagobah'] = {-2500, 256, -12500}
-	planets['hoth'] = {-12500, 256, -12500}
-	planets['yarvin-4'] = {-22500, 256, 7500}
-	planets['ilum'] = {-17500, 256, 7500}
-	planets['deep-space'] = {7500, 256, -2500}
-	planets['endor'] = {-22500, 256, -17500}
-	planets['tython'] = {-7500, 256, 12500}
-	planets['korriban'] = {22500, 256, -22500}
-	planets['jakku'] = {-27500, 256, 7500}
-	planets['hurrikane'] = {27500, 256, 27500}
-	planets = serial.serialize(planets)
-	fs.write(pl, planets)
-	fs.close(pl)
-end
-
---ACTUAL PROGRAM START
-
-if not isAuto() then
-	term.write("Starting Warpdrive normally\n")
-	term.write("Press ENTER to engage autopilot...\n")
-	
-	event.pullFiltered(10, filter)				--THE PROBLEM CHILD
-	if not pressed then
-		os.execute('/normal_wd')
-	elseif pressed then
-		local auto = io.open("/auto", "w")
-		fs.write("auto", "true")
-		fs.close(auto)
-		os.execute(reboot)				--This is startup file so rebooting will just skip the whole press ENTER preamble
-	end
-else
+function solution()					--Attempt as solving problem child
 	local nav = io.open("/navConf", "r")
 	if fs.read(nav, 3) == "new" then
 		fs.close(nav)
@@ -231,4 +182,56 @@ else
 	wcon.movement(xJump, yJump, zJump)
 	wcon.command("MANUAL")
 	wcon.enable(true)
+end
+
+--CHECKING FILES
+
+if not fs.exists("/auto") then
+	local auto = io.open("/auto", "w")
+	fs.write(auto, "false")
+	fs.close(auto)
+end
+if not fs.exists("/navConf") then
+	local nav = io.open("/navConf", "w")
+	fs.write(nav, "new")
+	fs.close(nav)
+end
+if not fs.exists("/planet_list") then
+	local pl = io.open("/planet_list", "w")
+	planets = {}
+	planets['telos'] = {2500, 256, 22500}
+	planets['kashyyk'] = {12500, 256, 12500}
+	planets['tatooine'] = {12500, 256, -17500}
+	planets['dagobah'] = {-2500, 256, -12500}
+	planets['hoth'] = {-12500, 256, -12500}
+	planets['yarvin-4'] = {-22500, 256, 7500}
+	planets['ilum'] = {-17500, 256, 7500}
+	planets['deep-space'] = {7500, 256, -2500}
+	planets['endor'] = {-22500, 256, -17500}
+	planets['tython'] = {-7500, 256, 12500}
+	planets['korriban'] = {22500, 256, -22500}
+	planets['jakku'] = {-27500, 256, 7500}
+	planets['hurrikane'] = {27500, 256, 27500}
+	planets = serial.serialize(planets)
+	fs.write(pl, planets)
+	fs.close(pl)
+end
+
+--ACTUAL PROGRAM START
+
+if not isAuto() then
+	term.write("Starting Warpdrive normally\n")
+	term.write("Press ENTER to engage autopilot...\n")
+	
+	event.pullFiltered(10, filter)				--THE PROBLEM CHILD
+	if not pressed then
+		os.execute('/normal_wd')
+	elseif pressed then
+		local auto = io.open("/auto", "w")
+		fs.write("auto", "true")
+		fs.close(auto)
+		solution()
+	end
+else
+	solution()
 end
