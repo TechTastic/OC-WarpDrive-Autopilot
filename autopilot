@@ -79,7 +79,7 @@ if ~isAuto() then
 		os.sleep(1)
 	end
 	if i == 0 then
-		os.execute(/normal_wd)
+		os.execute('/normal_wd')
 	else
 		local auto = io.open("/auto", "w")
 		fs.write("auto", "true")
