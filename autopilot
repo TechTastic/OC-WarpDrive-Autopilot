@@ -31,11 +31,15 @@ function isAuto()					--IS AUTOPILOT ALREADY ON?
 	return bool
 end
 
-function keyPress()
-	print(time)
-	if kb.isKeyDown(0x1C) then
-		event.cancel(time)
-		i = i - 1
+function filter(key)					--filter for pullFiltered()
+	if key == "key_down" then
+		if kb.isKeyDown(0x1C) then
+			pressed = true
+			return true
+		else
+			pressed = false
+			return false
+		end
 	end
 end
 		
@@ -79,15 +83,14 @@ if not isAuto() then
 	term.write("Starting Warpdrive normally\n")
 	term.write("Press ENTER to engage autopilot...\n")
 	
-	i = 30
-	time = event.timer(1, keyPress() , 30)
-	if i == 0 then
+	event.pullFiltered(10, filter)				--THE PROBLEM CHILD
+	if not pressed then
 		os.execute('/normal_wd')
-	else
+	elseif pressed then
 		local auto = io.open("/auto", "w")
 		fs.write("auto", "true")
 		fs.close(auto)
-		os.execute(startup)
+		os.execute(reboot)				--This is startup file so rebooting will just skip the whole press ENTER preamble
 	end
 else
 	local nav = io.open("/navConf", "r")
