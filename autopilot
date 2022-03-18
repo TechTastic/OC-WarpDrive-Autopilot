@@ -12,7 +12,7 @@ local kb = component.keyboard
 -- CUSTOM FUNCTIONS
 
 function getPlanet(name)				--GET PLANET LOCATION FROM NAME
-	local pl = io.open("planet_list", "r")
+	local pl = io.open("/planet_list", "r")
 	local planets = serial.unserialize(fs.read(pl, 32000))
 	for k,v in pairs(planets) do
 		if planets[k] == name then
@@ -22,7 +22,7 @@ function getPlanet(name)				--GET PLANET LOCATION FROM NAME
 end
 
 function isAuto()					--IS AUTOPILOT ALREADY ON?
-	local auto = io.open("auto", "r")
+	local auto = io.open("/auto", "r")
 	local bool = false
 	if fs.read(auto, 5) == "true" then
 		bool = true
@@ -33,18 +33,18 @@ end
 
 --CHECKING FILES
 
-if ~fs.exists("auto") then
-	local auto = io.open("auto", "w")
+if ~fs.exists("/auto") then
+	local auto = io.open("/auto", "w")
 	fs.write(auto, "false")
 	fs.close(auto)
 end
-if ~fs.exists("navConf") then
-	local nav = io.open("navConf", "w")
+if ~fs.exists("/navConf") then
+	local nav = io.open("/navConf", "w")
 	fs.write(nav, "new")
 	fs.close(nav)
 end
-if ~fs.exists("planet_list") then
-	local pl = io.open("planet_list", "w")
+if ~fs.exists("/planet_list") then
+	local pl = io.open("/planet_list", "w")
 	planets = {}
 	planets['telos'] = {2500, 256, 22500}
 	planets['kashyyk'] = {12500, 256, 12500}
@@ -79,21 +79,21 @@ if ~isAuto() then
 		os.sleep(1)
 	end
 	if i == 0 then
-		os.execute(normal_wd)
+		os.execute(/normal_wd)
 	else
-		local auto = io.open("auto", "w")
+		local auto = io.open("/auto", "w")
 		fs.write("auto", "true")
 		fs.close(auto)
 		os.execute(startup)
 	end
 else
-	local nav = io.open("navConf", "r")
+	local nav = io.open("/navConf", "r")
 	if fs.read(nav, 3) == "new" then
 		fs.close(nav)
-		local pl = io.open("planet_list", "r")
+		local pl = io.open("/planet_list", "r")
 		local planets = serial.unserialize(pl, 32000)
 		fs.close(pl)
-		term.write("List of PLanets:\n")
+		term.write("List of Planets:\n")
 		for k, v in pairs(planets) do
 			term.write(planets[k]\n)
 		end
@@ -124,7 +124,7 @@ else
 			target = {tX, tY, tZ}
 		end
 		local size, _ = wcon.getShipSize()
-		if size >= 4500 then
+		if size >= 3000 then
 			term.write("Should we utilize hyperspace? [Y/n]")
 			local hyper = term.read()
 			if hyper == "n" or hyper == "N" then
@@ -144,11 +144,11 @@ else
 		else
 			target[5] = "space"
 		end
-		local nav = io.open("navConf", "w")
+		local nav = io.open("/navConf", "w")
 		fs.write(serial.serialize(target))
 		fs.close(nav)
 	end
-	local nav = io.open("navConf", "r")
+	local nav = io.open("/navConf", "r")
 	target = serial.unserialize(fs.read(nav, 32000))
 	fs.close(nav)
 	if target[5] == "planet" then
@@ -160,7 +160,7 @@ else
 			end
 		elseif wcon.isInSpace() then
 			target[5] = "space"
-			local nav = io.open("navConf", "w")
+			local nav = io.open("/navConf", "w")
 			fs.write(serial.serialize(target))
 			fs.close(nav)
 		else
@@ -211,10 +211,10 @@ else
 				wcon.enable(true)
 			else
 				term.write("You've arrived! Resetting configuration changes")
-				local auto = io.open("auto", "w")
+				local auto = io.open("/auto", "w")
 				fs.write("false")
 				fs.close(nav)
-				local nav = io.open("navConf", "w")
+				local nav = io.open("/navConf", "w")
 				fs.write("new")
 				fs.close(nav)
 				os.execute(reboot)
