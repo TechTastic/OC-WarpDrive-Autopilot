@@ -1,6 +1,6 @@
 local nav = io.open("/navConf", "r")
 local navConf = nav:read(3)
-nav.close()
+nav:close(nav)
 if navConf == "new" then
   local pl = io.open("/planet_list", "r")
   local planets = serial.unserialize(pl:read("*all"))
