@@ -33,17 +33,17 @@ end
 
 --CHECKING FILES
 
-if ~fs.exists("/auto") then
+if not fs.exists("/auto") then
 	local auto = io.open("/auto", "w")
 	fs.write(auto, "false")
 	fs.close(auto)
 end
-if ~fs.exists("/navConf") then
+if not fs.exists("/navConf") then
 	local nav = io.open("/navConf", "w")
 	fs.write(nav, "new")
 	fs.close(nav)
 end
-if ~fs.exists("/planet_list") then
+if not fs.exists("/planet_list") then
 	local pl = io.open("/planet_list", "w")
 	planets = {}
 	planets['telos'] = {2500, 256, 22500}
@@ -66,7 +66,7 @@ end
 
 --ACTUAL PROGRAM START
 
-if ~isAuto() then
+if not isAuto() then
 	term.write("Starting Warpdrive normally\n")
 	term.write("Press ENTER to engage autopilot...\n")
 
@@ -135,8 +135,8 @@ else
 		else
 			target[4] = false
 		end
-		if ~wcon.isInSpace() then
-			if ~wcon.isInHyperspace() then
+		if not wcon.isInSpace() then
+			if not wcon.isInHyperspace() then
 				target[5] = "planet"
 			else
 				target[5] = "hyper"
@@ -157,6 +157,7 @@ else
 			while wcon.getShipSize() > 3000 do
 				term.write("Current Size: " .. wcon.getShipSize())
 				os.sleep(1)
+				os.execute(reboot)
 			end
 		elseif wcon.isInSpace() then
 			target[5] = "space"
