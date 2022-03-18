@@ -31,9 +31,10 @@ function isAuto()					--IS AUTOPILOT ALREADY ON?
 	return bool
 end
 
-function keyPress(time)
+function keyPress(num)
+	print(num)
 	if kb.isKeyDown(0x1C) then
-		event.cancel(time)
+		event.cancel(num)
 		i = i - 1
 	end
 end
