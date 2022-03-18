@@ -1,0 +1,95 @@
+--MAKE THIS YOUR startup FILE
+
+local component = require("component")
+local event = require("event")
+local term = require("term")
+local serial = require("serialization")
+local kb = require("keyboard")
+
+local wcon = component.warpdriveShipController
+local fs = component.filesystem
+
+-- CUSTOM FUNCTIONS
+
+function getPlanet(name)				--GET PLANET LOCATION FROM NAME
+	local pl = io.open("/planet_list", "r")
+	local planets = serial.unserialize(pl:read("*all"))
+	for k,v in pairs(planets) do
+		if planets[k] == name then
+			return planets[name]
+		end
+	end
+end
+
+function isAuto()					--IS AUTOPILOT ALREADY ON?
+	local auto = io.open("/auto", "r")
+	local bool = false
+	if auto:read(5) == "true" then
+		bool = true
+	end
+	auto:close()
+	return bool
+end
+
+local pressed
+function filter(key)					--filter for pullFiltered()
+	if key == "key_down" then
+		pressed = false
+		if kb.isKeyDown(0x1C) then
+			pressed = true
+		end
+	end
+	return pressed
+end
+
+--CHECKING FILES
+
+if not fs.exists("/auto") then
+	local auto = io.open("/auto", "w")
+	auto:write("false")
+	auto:close()
+end
+if not fs.exists("/navConf") then
+	local nav = io.open("/navConf", "w")
+	nav:write("new")
+	nav:close()
+end
+if not fs.exists("/planet_list") then
+	local pl = io.open("/planet_list", "w")
+	planets = {}
+	planets['telos'] = {2500, 256, 22500}
+	planets['kashyyk'] = {12500, 256, 12500}
+	planets['tatooine'] = {12500, 256, -17500}
+	planets['dagobah'] = {-2500, 256, -12500}
+	planets['hoth'] = {-12500, 256, -12500}
+	planets['yarvin-4'] = {-22500, 256, 7500}
+	planets['ilum'] = {-17500, 256, 7500}
+	planets['deep-space'] = {7500, 256, -2500}
+	planets['endor'] = {-22500, 256, -17500}
+	planets['tython'] = {-7500, 256, 12500}
+	planets['korriban'] = {22500, 256, -22500}
+	planets['jakku'] = {-27500, 256, 7500}
+	planets['hurrikane'] = {27500, 256, 27500}
+	planets = serial.serialize(planets)
+	pl:write(planets)
+	pl:close()
+end
+
+--ACTUAL PROGRAM START
+
+if not isAuto() then
+	term.write("Starting Warpdrive normally\n")
+	term.write("Press ENTER to engage autopilot...\n")
+	
+	event.pullFiltered(10, filter)
+	if not pressed then
+		os.execute('/normal_wd')
+	elseif pressed then
+		local auto = io.open("/auto", "w")
+		auto:write("true")
+		auto:close()
+		os.execute("/autoNav")
+	end
+else
+	os.execute("/autoNav")
+end
