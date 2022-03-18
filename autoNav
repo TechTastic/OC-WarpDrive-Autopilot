@@ -82,7 +82,7 @@ if navConf == "new" then
   pl:close()
   term.write("List of Planets:\n")
   for k, v in pairs(planets) do
-    term.write(planets[k] .. "\n")
+    term.write(serial.serialize(planets[k]) .. "\n")
   end
   term.write("Enter a planet name or say 'coords' [coords]\n")
   local tName = term.read()
