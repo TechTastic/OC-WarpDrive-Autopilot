@@ -3,6 +3,7 @@ local serial = require("serialization")
 local data = component.data
 
 os.execute("cp /startup /normal_wd")
+os.execute("mkdir /lib/autopilot")
 
 local pl = io.open("/lib/autopilot/planet-list.lua", "w")
 pl:write(inflate(decode64("eJxtkEEOwiAQRfc9BbtuSlIaTVeexLiYWiJIZRoKJqTp3dUCkVpXs3hv/ky+4dYZTeaCkHNp+YBTeSEnMjfHuq5I8xlLtUIFk/BeBcwCZxm3YBGl5huBsvZr9HDDDkQQaBKyCIE2UfYHezBPqekhBQQlOyAH90j77S/sOR/pNMI1fhgEmuVz3aPZhm/+t94K1FFodwUoNEZ2EIUUkFd4B6VcOrB7ULj3voLUYBTWsRTLCzOEa2Q="))
