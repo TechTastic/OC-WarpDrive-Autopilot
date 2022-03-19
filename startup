@@ -7,7 +7,6 @@ local serial = require("serialization")
 local kb = require("keyboard")
 
 local wcon = component.warpdriveShipController
-local fs = component.filesystem
 
 -- CUSTOM FUNCTIONS
 
@@ -15,20 +14,17 @@ function getPlanet(name)				--GET PLANET LOCATION FROM NAME
 	local pl = io.open("/planet_list", "r")
 	local planets = serial.unserialize(pl:read("*all"))
 	for k,v in pairs(planets) do
-		if planets[k] == name then
+		if k == name then
 			return planets[name]
 		end
 	end
 end
 
 function isAuto()					--IS AUTOPILOT ALREADY ON?
-	local auto = io.open("/auto", "r")
-	local bool = false
-	if auto:read(5) == "true" then
-		bool = true
-	end
-	auto:close()
-	return bool
+	local auto = io.open("/navConf", "r")
+	local temp = serial.unserialize(auto:read("*all"))
+	auto:close(auto)
+	return temp[1]
 end
 
 local pressed
@@ -40,14 +36,6 @@ function filter(key)					--filter for pullFiltered()
 		end
 	end
 	return pressed
-end
-
-function toBool(str)
-	bool = false
-	if str == "true" then
-		bool = true
-	end
-	return bool
 end
 
 function main()
@@ -196,39 +184,6 @@ function main()
 	wcon.enable(true)
 end
 
---CHECKING FILES
-
-if not fs.exists("/auto") then
-	local auto = io.open("/auto", "w")
-	auto:write("false")
-	auto:close()
-end
-if not fs.exists("/navConf") then
-	local nav = io.open("/navConf", "w")
-	nav:write("new")
-	nav:close()
-end
-if not fs.exists("/planet_list") then
-	local pl = io.open("/planet_list", "w")
-	planets = {}
-	planets['telos'] = {2500, 256, 22500}
-	planets['kashyyk'] = {12500, 256, 12500}
-	planets['tatooine'] = {12500, 256, -17500}
-	planets['dagobah'] = {-2500, 256, -12500}
-	planets['hoth'] = {-12500, 256, -12500}
-	planets['yarvin-4'] = {-22500, 256, 7500}
-	planets['ilum'] = {-17500, 256, 7500}
-	planets['deep-space'] = {7500, 256, -2500}
-	planets['endor'] = {-22500, 256, -17500}
-	planets['tython'] = {-7500, 256, 12500}
-	planets['korriban'] = {22500, 256, -22500}
-	planets['jakku'] = {-27500, 256, 7500}
-	planets['hurrikane'] = {27500, 256, 27500}
-	planets = serial.serialize(planets)
-	pl:write(planets)
-	pl:close()
-end
-
 --ACTUAL PROGRAM START
 
 if not isAuto() then
@@ -239,8 +194,10 @@ if not isAuto() then
 	if not pressed then
 		os.execute('/normal_wd')
 	elseif pressed then
-		local auto = io.open("/auto", "w")
-		auto:write("true")
+		local auto = io.open("/navConf", "w")
+		local temp = serial.unserialize(auto:read("*all"))
+		temp[1] = true
+		auto:write(serial.serialize(temp))
 		auto:close()
 		main()
 	end
