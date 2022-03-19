@@ -1,7 +1,7 @@
 {
-  false,--Is Autopilot on?
-  new,--X OR if new then configuration
-  0,--Z
-  nil,--use Hyperspace?
-  ""--Dimension tracking
+  false,
+  new,
+  0,
+  false,
+  ""
 }
