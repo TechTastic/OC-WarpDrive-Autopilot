@@ -111,15 +111,11 @@ function main()
 	  end
 	  local nav = io.open("/navConf", "w")
 	  nav:write(serial.serialize(target))
-	  nav:close()
+	  nav:close(nav)
 	end
 	local nav = io.open("/navConf", "r")
 	local conf = nav:read("*all")
-	nav:close()
-	if conf == nil then
-	  os.execute("rm /navConf")
-	  os.execute(reboot)
-	end
+	nav:close(nav)
 	local target = serial.unserialize(conf)
 	if target[5] == "planet" then
 	  local mass, _ = wcon.getShipSize()
