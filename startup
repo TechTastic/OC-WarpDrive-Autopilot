@@ -1,0 +1,151 @@
+local pl = require("autopilot/planet-list.lua")
+local nc = require("autopilot/navConf.lua")
+local comp = require("component")
+local serial = require("serialization")
+local term = require("term")
+local event = require("event")
+local kb = require("keyboard")
+
+local wcon = comp.warpdriveShipController
+
+--Custom Functions
+
+function filter(key)
+	if key == "key_down" then
+		if kb.isKeyDown(0x1C) then
+			return true
+		else
+			return false
+		end
+	else
+		return false
+	end
+end
+
+function testWB(coord)
+	while coord < -30000 or coord > 30000 do
+		term.write("The world border is 60K x 60K, 30K to -30K\nRe-enter the number: ")
+		coord = term.read()
+	end
+	return coord
+end
+
+function navConf()
+	if nc[2] == "new" then
+		term.write("List of Planets:\n")
+		for k, v in pairs{pl} do
+			term.write(k\n)
+		end
+		term.write("What is the destination? (ilum, dagobah, yarvin4, etc.) OR [coods]\n")
+		local dest = term.read()
+		if dest == "" or dest == "coords" then
+			term.write("Where exactly are we going?\nX: ")
+			local x = term.read()
+			nc[2] = testWB(x)
+			term.write("Z: ")
+			local y = term.read()
+			nc[3] = testWB(y)
+		else
+			for k, v in pairs(pl) do
+				if k == dest then
+					nc[2] = v[1]
+					nc[3] = v[2]
+					break
+				end
+			end
+		end
+	end
+	if nc[4] == nil then
+		local mass, _ = wcon.getShipSize()
+		if mass >= 3000 then
+			term.write("Should we utilize Hyperspace?\n [y/N]")
+			local hyper = term.read()
+			if hyper == "y" or hyper == "Y" then
+				nc[4] = true
+			else
+				nc[4] = false
+			end
+		else
+			nc[4] = false
+		end
+	end
+	if wcon.isInSpace() then
+		nc[5] = "space"
+	elseif wcon.isInHyperspace() then
+		nc[5] = "hyper"
+	else
+		nc[5] = "planet"
+	end
+	local navConf = io.open("/lib/autopilot/navConf.lua", "w")
+	navConf:write("return " .. serial.serialize(nc))
+	navConf:close(navConf)
+end
+
+function move(mX, mY, mZ, mode)
+	wcon.movement(mX, mY, mZ)
+	wcon.command(mode)
+	wcon.enable(true)
+end
+
+function main()
+	local _, max = wcon.getMaxJumpDistance()
+	local x, y, z, _ = wcon.position()				--HERE
+	local _, _, depthUp = wcon.dim_positive()
+	if nc[5] == "planet" then
+		move(0, max, 0, "MANUAL")
+	elseif nc[5] == "space" then
+		if nc[4] then
+			move(0, 0, 0, "HYPERDRIVE")
+		else
+			local xMove = max
+			local yMove = 0
+			local zMove = max
+			if y+depthUp < 255 then
+				yMove = max
+			end
+			if nc[2] - x > 0 then
+				if nc[2] - x < max then
+					xMove = nc[2] - x
+				end
+			else
+				if math.abs(nc[2] - x) < max then
+					xMove = nc[2] - x
+				else
+					xMove = xMove -1
+				end
+			end
+			if nc[3] - z > 0 then
+				if nc[3] - z < max then
+					zMove = nc[3] - z
+				end
+			else
+				if math.abs(nc[3] - z) < max then
+					zMove = nc[3] - z
+				else
+					zMove = zMove -1
+				end
+			end
+			move(xMove, yMove, zMove, "MANUAL")
+		end
+	else
+	end
+end
+
+--Program Start
+
+if not nc[1] then
+	term.write("Starting WarpDrive normally...\n\nPress ENTER to enter Autopilot.\n")
+	if event.pullFiltered(10, filter) then
+		nc[1] = true
+		local navConf = io.open("/lib/autopilot/navConf.lua", "w")
+		navConf:write("return " .. serial.serialize(nc))
+		navConf:close(navConf)
+		navConf()
+		main()
+	else
+		os.execute('/normal_wd')
+	end
+else
+	navConf()
+	main()
+end
