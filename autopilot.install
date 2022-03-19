@@ -1,0 +1,17 @@
+local component = require("component")
+local serial = require("serialization")
+local data = component.data
+
+os.execute("cp /startup /normal_wd")
+
+local pl = io.open("/planet-list", "w")
+pl:write(inflate(decode64( PUT PLANET LIST FILE CODE HERE ))
+pl:close(pl)
+
+local nc = io.open("/navConf", "w")
+nc:write(inflate(decode64( PUT NAVCONF FILE CODE HERE ))
+nc:close(nc)
+
+local s = io.open("/startup", "w")
+s:write(inflate(decode64( PUT STARTUP FILE CODE HERE ))
+s:close(s)
