@@ -1,1 +1,4 @@
-"new"
+return {
+  false,
+  "new",
+}
