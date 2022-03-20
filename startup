@@ -1,5 +1,5 @@
-local pl = require("autopilot/planet-list.lua")
-local nc = require("autopilot/navConf.lua")
+local pl = require("autopilot/planet-list")
+local nc = require("autopilot/navConf")
 local comp = require("component")
 local serial = require("serialization")
 local term = require("term")
@@ -7,6 +7,7 @@ local event = require("event")
 local kb = require("keyboard")
 
 local wcon = comp.warpdriveShipController
+local data = comp.data
 
 --Custom Functions
 
@@ -22,38 +23,47 @@ function filter(key)
 	end
 end
 
-function testWB(coord)
-	while coord < -30000 or coord > 30000 do
-		term.write("The world border is 60K x 60K, 30K to -30K\nRe-enter the number: ")
-		coord = term.read()
-	end
-	return coord
-end
-
-function navConf()
+function confNav()
 	if nc[2] == "new" then
 		term.write("List of Planets:\n")
 		for k, v in pairs{pl} do
-			term.write(k\n)
+			for j, c in pairs(v) do
+				term.write(j .. "\n")
+			end
 		end
-		term.write("What is the destination? (ilum, dagobah, yarvin4, etc.) OR [coods]\n")
+		term.write("What is the destination? (ilum, dagobah, yarvin4, etc.) OR [coords]\n")
 		local dest = term.read()
-		if dest == "" or dest == "coords" then
-			term.write("Where exactly are we going?\nX: ")
-			local x = term.read()
-			nc[2] = testWB(x)
-			term.write("Z: ")
-			local y = term.read()
-			nc[3] = testWB(y)
-		else
-			for k, v in pairs(pl) do
-				if k == dest then
-					nc[2] = v[1]
-					nc[3] = v[2]
-					break
+		local planet = ""
+		for k, v in pairs(pl) do
+			for j, c in pairs(v) do
+				if dest == j then
+					planet = j
 				end
 			end
 		end
+		local xDest
+		local zDest
+		if planet == "" then
+			term.write("Where do you want to go exactly?\nX: ")
+			xDest = tonumber(term.read())
+			while (xDest < -30000) or (xDest > 30000) do
+				term.write("Cannot be over 30K or under -30K\nX: ")
+				xDest = tonumber(term.read())
+			end
+			term.write("Z: ")
+			zDest = tonumber(term.read())
+			while (zDest < -30000) or (zDest > 30000) do
+				term.write("Cannot be over 30K or under -30K\nZ: ")
+				zDest = tonumber(term.read())
+			end
+		else
+			local planet = pl[1]
+			local planet = pl[j]
+			xDest = planet[1]
+			zDest = planet[2]
+		end
+		nc[2] = xDest
+		nc[3] = zDest
 	end
 	if nc[4] == nil then
 		local mass, _ = wcon.getShipSize()
@@ -81,54 +91,67 @@ function navConf()
 	navConf:close(navConf)
 end
 
-function move(mX, mY, mZ, mode)
-	wcon.movement(mX, mY, mZ)
-	wcon.command(mode)
+function move(table)
+	wcon.movement(table[1], table[2], table[3])
+	wcon.command(table[4])
 	wcon.enable(true)
+end
+
+function chkCoord(dst, cur, jMax)
+	local distance = dst - cur
+	if distance == math.abs(distance) then
+		if distance > jMax then
+			distance = jMax
+		end
+	else
+		if math.abs(distance) > jMax then
+			distance = jMax * -1
+		end
+	end
+	return distance
 end
 
 function main()
 	local _, max = wcon.getMaxJumpDistance()
-	local x, y, z, _ = wcon.position()				--HERE
+	local x, y, z, _ = wcon.position()
 	local _, _, depthUp = wcon.dim_positive()
-	if nc[5] == "planet" then
-		move(0, max, 0, "MANUAL")
-	elseif nc[5] == "space" then
-		if nc[4] then
-			move(0, 0, 0, "HYPERDRIVE")
+	local size, _ = wcon.getShipSize()
+
+	local tShip = {x, y, z, size, depthUp}
+	local tMove = {0, 0, 0, "MANUAL"}
+
+	if tShip[1] == nc[2] then
+		if tShip[3] == nc[3] then
+			if nc[5] == "hyper" then
+				tMove[4] = "HYPERDRIVE"
+			else
+				local file = io.open("/lib/autopilot/navConf.lua", "w")
+				file:write("return {false,\"new\"}")
+				term.write("You've reached your destination!\n\nProgram Made by TechTastic.\nResetting configurations...")
+				os.sleep(5)
+				os.execute{reboot}
+			end
 		else
-			local xMove = max
-			local yMove = 0
-			local zMove = max
-			if y+depthUp < 255 then
-				yMove = max
+			if nc[5] == "space" then
+				if (tShip[2] - depthUp) < 255 then
+					tMove[3] = max
+				end
+			elseif nc[5] == "planet" then
+				tMove[3] = max
 			end
-			if nc[2] - x > 0 then
-				if nc[2] - x < max then
-					xMove = nc[2] - x
-				end
-			else
-				if math.abs(nc[2] - x) < max then
-					xMove = nc[2] - x
-				else
-					xMove = xMove -1
-				end
-			end
-			if nc[3] - z > 0 then
-				if nc[3] - z < max then
-					zMove = nc[3] - z
-				end
-			else
-				if math.abs(nc[3] - z) < max then
-					zMove = nc[3] - z
-				else
-					zMove = zMove -1
-				end
-			end
-			move(xMove, yMove, zMove, "MANUAL")
 		end
 	else
+		if nc[5] == "space" then
+			if (tShip[2] - depthUp) < 255 then
+				tMove[3] = max
+			end
+		elseif nc[5] == "planet" then
+			tMove[3] = max
+		end
+		tMove[1] = chkCoord(nc[2], tShip[1], max)
+		tMove[3] = chkCoord(nc[3], tShip[3], max)
 	end
+	move(tMove)
 end
 
 --Program Start
@@ -140,12 +163,12 @@ if not nc[1] then
 		local navConf = io.open("/lib/autopilot/navConf.lua", "w")
 		navConf:write("return " .. serial.serialize(nc))
 		navConf:close(navConf)
-		navConf()
+		confNav()
 		main()
 	else
 		os.execute('/normal_wd')
 	end
 else
-	navConf()
+	confNav()
 	main()
 end
