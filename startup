@@ -7,7 +7,6 @@ local event = require("event")
 local kb = require("keyboard")
 
 local wcon = comp.warpdriveShipController
-local data = comp.data
 
 --Custom Functions
 
