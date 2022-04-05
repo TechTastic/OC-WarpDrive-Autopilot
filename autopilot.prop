@@ -1,5 +1,6 @@
 {
-  label = "Autopilot",
-  reboot = true,
-  setLabel = true
+	label = "Autopilot",
+	reboot = true,
+	setlabel = true,
+	setboot = true
 }
