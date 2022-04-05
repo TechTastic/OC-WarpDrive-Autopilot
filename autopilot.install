@@ -1,18 +1,23 @@
 local component = require("component")
 local serial = require("serialization")
 local data = component.data
+local fs = component.filesystem
 
-os.execute("cp /startup /normal_wd")
-os.execute("mkdir /lib/autopilot")
+if fs.exists("/startup") then
+  os.execute("cp /startup /normal_wd")
+  os.execute("mkdir /lib/autopilot")
 
-local pl = io.open("/lib/autopilot/planet-list.lua", "w")
-pl:write(data.inflate(data.decode64("eJxtkEEOwiAQRfc9Bbtu2qQ0mq48iXExtUSQyjQUTEjD3dUCkVpXs3jvf4bRzFityFIQci4NG3EuL+RElvbYNBVpP8NXK5Qwc+dkwDRwmnEDBlEothFq2n2NAW7YAw9CnYSsgqNJlP7BDvRTqEPKByPrF6N9pHj3CwfGpnmCa9wv8DprZ2pAve3ebG+c4aii0O2+L1Fr0UMUUkF+wDtIadMDu/24feclpPtFYR2+8C99JGsK")))
-pl:close(pl)
+  local pl = io.open("/lib/autopilot/planet-list.lua", "w")
+  pl:write(data.inflate(data.decode64("eJxtkEEOwiAQRfc9Bbtu2qQ0mq48iXExtUSQyjQUTEjD3dUCkVpXs3jvf4bRzFityFIQci4NG3EuL+RElvbYNBVpP8NXK5Qwc+dkwDRwmnEDBlEothFq2n2NAW7YAw9CnYSsgqNJlP7BDvRTqEPKByPrF6N9pHj3CwfGpnmCa9wv8DprZ2pAve3ebG+c4aii0O2+L1Fr0UMUUkF+wDtIadMDu/24feclpPtFYR2+8C99JGsK")))
+  pl:close(pl)
 
-local nc = io.open("/lib/autopilot/navConf.lua", "w")
-nc:write(data.inflate(data.decode64("eJwrSi0pLcpTqE5LzClO1VFQykstV6oFAFiKB54=")))
-nc:close(nc)
+  local nc = io.open("/lib/autopilot/navConf.lua", "w")
+  nc:write(data.inflate(data.decode64("eJwrSi0pLcpTqE5LzClO1VFQykstV6oFAFiKB54=")))
+  nc:close(nc)
 
-local s = io.open("/startup", "w")
-s:write(data.inflate(data.decode64("eJytVm1v2zYQ/uwB+w83fakM2EqTNF+KpUWRpOjQNiuSdl0XGwUtnWOmNKlRlB07yH/fkRQlOnaH7CUIEvHuuRfeK4XKmYBSwDFo/LPmGtOE1UaVXCizVwom0QwFr0zS//EH4cAy3w2WbHGi5LQD5mpexlB7VhJlpKtCzdmGcU/ha2a4kh3QoJ7HMHvuuLggrTHbETr+t0nM/IariWK6sPyAWOZKEsa6mC2ZLgvNF3g54yVdyWglBOoALZhhAWq/rZLh8KSujJrD61rm1vPKUqfNAaZckMMpGSaTPT4F+oLjY7CufC3UUiZgZiiJ55iTjFdvcXVKjPTp7f5Jv+X2NJpaSzC6RntGUWFMn7KGgLKgf4H9gOuY7k/kIwVges4WaeOhzK8Oxs5HicvOPRv3bKm5oTi+o7IANYUPrkqq5yOXr15vqjR8G8ACuISScV3dleIeCuUctcybAeQtM130Ay/WfgNZBklQ2dwn/Iu9+DxjBnhlPYQCK8OlK52XkHJRzweUrms1YbMBrJhecPlsAGjyrA+/XsBVrpQuqnGw0uSXlFB+nQ2NrEgjnm8I4ibJzpumpeg/6qYUYW/nGG667PZ6rYEbT2gu/OD+3pnbU9LQHdfhSLqDGutop34zbKgpYApWqoYlo/YxCq4V4C3LjVi9HMnfn0MTfGfIhkTJej6hQo5i4xHLGRcIqQf+DMPDp/TTB4pAQ3sBDWlHqpMTJqUyMEFQC9SEfGsla1nQgVS9jX15hDMhZrGJP1oF68deZr3jMuv/4zKdL49wJiQ+NPqDOizF1f74O4yb8Ub2PCvA15vUg3FUXk3vdwVGhENLCCXmcX5KPHNTQnLR1pn3ZM6qagBfScrO1uwajR2nl3yNvqFI2kLgxbGL5u4qvZypWhSwRKgNp62A8GZVoq5KliOVKFyt9s7HTTC92Znlb7evNdewqCdWic1Jd/4SNUmvuVM7Y7vYt6x2zG6lZwvRDOIQMBcLXv0iL+0V0m6yk+CRFUzc3ZJmeMcS3c13ibnLBLENjs9w0nrRbHG/rQnAVaZKlGmyJ/hkb2ufZ6JmyQCSpQtzQ3ze5KdZLIkd1n5zZ2GBYyrzfiySC1UR0Z/62wtoTv2SGjYRaKVKzaVJk/eKZva1nU27bXi8FXBxsjrmtPo9nWp9AP7roP06HLdoWuFzJosG/KxjoLSU1FbALkcZl66qmjFMq2UA66jWS1Vxi4xAFTn7/W5oYY5KoLtWqRcssDSzT+V9B6TAoAU+HYD/Td6/Ov/06l1y79RR4ThdFALXnq6jozeGZx4G5mHHbNr6yC9/X1ZRdzjDvsaTN18+nF2cXvzy21nyoFG8k1M7R/9hgdnFSWIPCuzO9dNgZB8jo+Q+IONR8UXVTygk1PL5DAu71nT8HvhpJEfyg1bXms3hPSsQJiv4iPnsIyNMno3kBVZojK02+xTi17V2glWWZcGeqrJKIJbpUUfAW8xrg3caJ0qZ+51TwQfNzdSDo6OI5Kaqj/+wzcn2+21b3lP2G/GDTtyP97/X7pX7frPArsaHwxCiS8O0sSRbDrTPSM1+WyQbI9oCbdQ+07P51D6bCa/nTIgVRc5HHWnOn51/PLuwjUztSWP3VSiDrHl9kR33as/KWojX7sGMRbpPle1fzxszbz8e0P9poP2bifbdkdbrxa/oXjsoQh67ckmf7PkofV0WT/rtm9zjYiVBB/H/AkG4C/c=")))
-s:close(s)
+  local s = io.open("/startup", "w")
+  s:write(data.inflate(data.decode64("eJytVm1v2zYQ/uwB+w83fakM2EqTNF+KpUWRpOjQNiuSdl0XGwUtnWOmNKlRlB07yH/fkRQlOnaH7CUIEvHuuRfeK4XKmYBSwDFo/LPmGtOE1UaVXCizVwom0QwFr0zS//EH4cAy3w2WbHGi5LQD5mpexlB7VhJlpKtCzdmGcU/ha2a4kh3QoJ7HMHvuuLggrTHbETr+t0nM/IariWK6sPyAWOZKEsa6mC2ZLgvNF3g54yVdyWglBOoALZhhAWq/rZLh8KSujJrD61rm1vPKUqfNAaZckMMpGSaTPT4F+oLjY7CufC3UUiZgZiiJ55iTjFdvcXVKjPTp7f5Jv+X2NJpaSzC6RntGUWFMn7KGgLKgf4H9gOuY7k/kIwVges4WaeOhzK8Oxs5HicvOPRv3bKm5oTi+o7IANYUPrkqq5yOXr15vqjR8G8ACuISScV3dleIeCuUctcybAeQtM130Ay/WfgNZBklQ2dwn/Iu9+DxjBnhlPYQCK8OlK52XkHJRzweUrms1YbMBrJhecPlsAGjyrA+/XsBVrpQuqnGw0uSXlFB+nQ2NrEgjnm8I4ibJzpumpeg/6qYUYW/nGG667PZ6rYEbT2gu/OD+3pnbU9LQHdfhSLqDGutop34zbKgpYApWqoYlo/YxCq4V4C3LjVi9HMnfn0MTfGfIhkTJej6hQo5i4xHLGRcIqQf+DMPDp/TTB4pAQ3sBDWlHqpMTJqUyMEFQC9SEfGsla1nQgVS9jX15hDMhZrGJP1oF68deZr3jMuv/4zKdL49wJiQ+NPqDOizF1f74O4yb8Ub2PCvA15vUg3FUXk3vdwVGhENLCCXmcX5KPHNTQnLR1pn3ZM6qagBfScrO1uwajR2nl3yNvqFI2kLgxbGL5u4qvZypWhSwRKgNp62A8GZVoq5KliOVKFyt9s7HTTC92Znlb7evNdewqCdWic1Jd/4SNUmvuVM7Y7vYt6x2zG6lZwvRDOIQMBcLXv0iL+0V0m6yk+CRFUzc3ZJmeMcS3c13ibnLBLENjs9w0nrRbHG/rQnAVaZKlGmyJ/hkb2ufZ6JmyQCSpQtzQ3ze5KdZLIkd1n5zZ2GBYyrzfiySC1UR0Z/62wtoTv2SGjYRaKVKzaVJk/eKZva1nU27bXi8FXBxsjrmtPo9nWp9AP7roP06HLdoWuFzJosG/KxjoLSU1FbALkcZl66qmjFMq2UA66jWS1Vxi4xAFTn7/W5oYY5KoLtWqRcssDSzT+V9B6TAoAU+HYD/Td6/Ov/06l1y79RR4ThdFALXnq6jozeGZx4G5mHHbNr6yC9/X1ZRdzjDvsaTN18+nF2cXvzy21nyoFG8k1M7R/9hgdnFSWIPCuzO9dNgZB8jo+Q+IONR8UXVTygk1PL5DAu71nT8HvhpJEfyg1bXms3hPSsQJiv4iPnsIyNMno3kBVZojK02+xTi17V2glWWZcGeqrJKIJbpUUfAW8xrg3caJ0qZ+51TwQfNzdSDo6OI5Kaqj/+wzcn2+21b3lP2G/GDTtyP97/X7pX7frPArsaHwxCiS8O0sSRbDrTPSM1+WyQbI9oCbdQ+07P51D6bCa/nTIgVRc5HHWnOn51/PLuwjUztSWP3VSiDrHl9kR33as/KWojX7sGMRbpPle1fzxszbz8e0P9poP2bifbdkdbrxa/oXjsoQh67ckmf7PkofV0WT/rtm9zjYiVBB/H/AkG4C/c=")))
+  s:close(s)
+else
+  os.execute(reboot)
+end
