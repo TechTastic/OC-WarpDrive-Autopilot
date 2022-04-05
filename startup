@@ -92,29 +92,14 @@ function confNav()
 end
 
 function move(table)
+	print("Moving to " .. serial.serialize(table))
 	wcon.movement(table[1], table[2], table[3])
 	wcon.command(table[4])
 	wcon.enable(true)
 end
 
-function chkCoord(dst, cur, jMax)
-	local distance = dst - cur
-	if distance == math.abs(distance) then
-		if distance > jMax then
-			distance = jMax
-		end
-	else
-		if math.abs(distance) > jMax then
-			distance = jMax * -1
-		end
-	end
-	return distance
-end
-
 function main()
-	local _, max = wcon.getMaxJumpDistance()
 	local x, y, z, _ = wcon.position()
-	local _, _, depthUp = wcon.dim_positive()
 	local size, _ = wcon.getShipSize()
 
 	local tShip = {x, y, z, size, depthUp}
@@ -132,24 +117,13 @@ function main()
 				os.execute{reboot}
 			end
 		else
-			if nc[5] == "space" then
-				if (tShip[2] - depthUp) < 255 then
-					tMove[3] = max
-				end
-			elseif nc[5] == "planet" then
-				tMove[3] = max
-			end
+			tMove[2] = 255
+			tMove[3] = nc[3] - tShip[3]
 		end
 	else
-		if nc[5] == "space" then
-			if (tShip[2] - depthUp) < 255 then
-				tMove[3] = max
-			end
-		elseif nc[5] == "planet" then
-			tMove[3] = max
-		end
-		tMove[1] = chkCoord(nc[2], tShip[1], max)
-		tMove[3] = chkCoord(nc[3], tShip[3], max)
+		tMove[2] = 255
+		tMove[1] = nc[2] - tShip[1]
+		tMove[3] = nc[3] - tShip[3]
 	end
 	move(tMove)
 end
